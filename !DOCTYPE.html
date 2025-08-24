@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>School Management SPA - Firebase</title>
+<title>Student OSIM</title>
 <style>
-/* ... Keep your existing CSS for layout, cards, tables, modals ... */
 body {font-family: Arial, sans-serif; background:#f0f2f5; margin:0; padding:0;}
 header {background:#004aad; color:white; padding:1rem; text-align:center;}
 nav {display:flex; justify-content:center; margin:1rem 0;}
@@ -34,19 +33,20 @@ th{background:#004aad;color:white;}
 @media(max-width:768px){.card-container{flex-direction:column;} table, thead, tbody, th, td, tr{display:block;} th{position:sticky; top:0;} td{position:relative;padding-left:50%;} td::before{position:absolute; left:0;width:50%; white-space:nowrap; font-weight:bold;}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
-<header><h1>School Management SPA - Firebase</h1></header>
+<header><h1>Student OSIM</h1></header>
 <nav>
 <button onclick="showTab('studentRegister')">Student Register/Login</button>
 <button onclick="showTab('adminPanel')">Admin Panel</button>
 </nav>
 
 <div class="container">
+
 <!-- Student Registration/Login -->
 <div id="studentRegister">
 <h2>Student Registration</h2>
@@ -61,6 +61,7 @@ th{background:#004aad;color:white;}
 <input type="text" id="loginID" placeholder="Enter Student ID">
 <input type="password" id="loginPassword" placeholder="Enter Password">
 <button onclick="studentLogin()">Login</button>
+<button onclick="studentLogout()">Logout</button>
 
 <div id="studentResults" class="hidden">
 <h3>Welcome, <span id="studentNameCard"></span></h3>
@@ -94,6 +95,7 @@ th{background:#004aad;color:white;}
 <div class="card" id="totalCourses">Courses: 0</div>
 <div class="card" id="totalGrades">Grades: 0</div>
 </div>
+
 <h3>All Students</h3>
 <input class="search-box" id="searchStudent" placeholder="Search students..." onkeyup="filterTable('studentsTable','searchStudent',1)">
 <table id="studentsTable">
@@ -121,7 +123,7 @@ th{background:#004aad;color:white;}
 <button onclick="openModal('gradeModal')">Add Grade</button>
 </div>
 
-<!-- Modals ... keep same as previous SPA ... -->
+<!-- Modals can be added here as before -->
 
 <script>
 // --- Firebase Config ---
@@ -135,10 +137,12 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
-// --- Data Fetching from Firestore ---
-let students=[], courses=[], grades=[];
+// --- Data arrays ---
+let students=[], courses=[], grades=[], myChart=null;
 
+// --- Load Data from Firebase ---
 async function loadData(){
     const sSnap = await db.collection('students').get();
     students = sSnap.docs.map(d=>d.data());
@@ -149,50 +153,79 @@ async function loadData(){
     updateTables();
 }
 
-// --- Save Data to Firestore ---
-async function saveStudentToDB(student){
-    await db.collection('students').doc(student.studentID).set(student);
-}
-async function saveCourseToDB(course){
-    await db.collection('courses').doc(course.courseID).set(course);
-}
-async function saveGradeToDB(grade){
-    await db.collection('grades').doc(grade.gradeID).set(grade);
-}
+// --- Save to Firebase ---
+async function saveStudentToDB(student){ await db.collection('students').doc(student.studentID).set(student); }
+async function saveCourseToDB(course){ await db.collection('courses').doc(course.courseID).set(course); }
+async function saveGradeToDB(grade){ await db.collection('grades').doc(grade.gradeID).set(grade); }
 
-// --- Admin Password protection ---
+// --- Admin Password ---
 function showTab(tab){
-    if(tab === 'adminPanel'){
-        const pw = prompt("Enter Admin Password:");
-        if(pw !== "Masesahe5"){ alert("Incorrect password!"); return; }
+    if(tab==='adminPanel'){
+        const pw=prompt("Enter Admin Password:");
+        if(pw!=="Masesahe5"){alert("Incorrect password!"); return;}
     }
     document.getElementById('studentRegister').classList.add('hidden');
     document.getElementById('adminPanel').classList.add('hidden');
     document.getElementById(tab).classList.remove('hidden');
 }
 
-// --- Continue your SPA functions (registerStudent, studentLogin, saveCourse, saveGrade, updateTables, updateMyGradesDashboard, etc.) ---
-// In each function, after updating local arrays, call corresponding Firestore save functions.
-// Example:
+// --- Register Student with Firebase Auth ---
 async function registerStudent(){
     const name=document.getElementById('regName').value;
     const id=document.getElementById('regID').value;
     const cls=document.getElementById('regClass').value;
     const pw=document.getElementById('regPassword').value;
     if(!name||!id||!cls||!pw){alert('All fields required'); return;}
-    if(students.find(s=>s.studentID===id)){alert('ID exists'); return;}
-    const student={name,studentID:id,class:cls,password:pw};
-    students.push(student);
-    await saveStudentToDB(student); // save online
-    alert('Registered successfully!');
-    document.getElementById('regName').value='';
-    document.getElementById('regID').value='';
-    document.getElementById('regClass').value='';
-    document.getElementById('regPassword').value='';
-    updateTables();
+    try{
+        const email = id + "@studentosim.com"; // unique email for auth
+        await auth.createUserWithEmailAndPassword(email,pw);
+        const student={name,studentID:id,class:cls,email};
+        students.push(student);
+        await saveStudentToDB(student);
+        alert("Registered successfully! Use your Student ID to login.");
+        document.getElementById('regName').value='';
+        document.getElementById('regID').value='';
+        document.getElementById('regClass').value='';
+        document.getElementById('regPassword').value='';
+        updateTables();
+    } catch(error){ alert("Error: "+error.message); }
 }
 
-// --- Initialize ---
+// --- Student Login ---
+async function studentLogin(){
+    const id=document.getElementById('loginID').value;
+    const pw=document.getElementById('loginPassword').value;
+    if(!id||!pw){alert("Enter ID and password."); return;}
+    try{
+        const email = id + "@studentosim.com";
+        await auth.signInWithEmailAndPassword(email,pw);
+        const student = students.find(s=>s.studentID===id);
+        if(student){ showStudentDashboard(student); }
+        else{ alert("Student data not found."); }
+    } catch(error){ alert("Login failed: "+error.message); }
+}
+
+// --- Logout ---
+function studentLogout(){
+    auth.signOut().then(()=>{
+        document.getElementById('studentResults').classList.add('hidden');
+        alert("Logged out successfully.");
+    });
+}
+
+// --- Show student dashboard ---
+function showStudentDashboard(student){
+    document.getElementById('studentResults').classList.remove('hidden');
+    document.getElementById('studentNameCard').textContent = student.name;
+    document.getElementById('studentIDCard').textContent = student.studentID;
+    document.getElementById('studentClassCard').textContent = student.class;
+    updateMyGradesDashboard(student.studentID);
+}
+
+// --- Placeholder for dashboard and table functions ---
+function updateTables(){ /* Implement table rendering for admin */ }
+function updateMyGradesDashboard(studentID){ /* Implement student grades dashboard */ }
+
 loadData();
 showTab('studentRegister');
 </script>
