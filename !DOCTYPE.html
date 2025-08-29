@@ -1,132 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student OSIM</title>
-<style>
-body {font-family: Arial, sans-serif; background:#f0f2f5; margin:0; padding:0;}
-header {background:#004aad; color:white; padding:1rem; text-align:center;}
-nav {display:flex; justify-content:center; margin:1rem 0;}
-nav button {margin:0 0.5rem; padding:0.5rem 1rem; background:#004aad; color:white; border:none; border-radius:5px; cursor:pointer;}
-nav button:hover {background:#003080;}
-.container{max-width:1000px;margin:auto;padding:1rem;}
-.card-container{display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-around;margin-bottom:1rem;}
-.card{background:white;padding:1rem;border-radius:10px;flex:1;min-width:150px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-input, select, button{width:100%;padding:0.5rem;margin:0.3rem 0;border-radius:5px;border:1px solid #ccc;}
-button{background:#004aad;color:white;border:none;cursor:pointer;}
-button:hover{background:#003080;}
-table{width:100%;border-collapse:collapse;margin-top:0.5rem;}
-th, td{border:1px solid #ddd;padding:0.5rem;text-align:center;cursor:pointer;}
-th{background:#004aad;color:white;}
-.hidden{display:none;}
-.search-box{margin-bottom:0.5rem;padding:0.5rem;border-radius:5px;border:1px solid #ccc;}
-.grade-A {background-color:#4CAF50;color:white;}
-.grade-B {background-color:#8BC34A;color:white;}
-.grade-C {background-color:#FFEB3B;color:black;}
-.grade-D {background-color:#FF9800;color:white;}
-.grade-F {background-color:#F44336;color:white;}
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;}
-.modal-content{background:white;padding:1rem;border-radius:10px;width:300px;position:relative;transform: translateY(-50px); opacity:0; transition: all 0.3s;}
-.modal.show .modal-content{transform: translateY(0); opacity:1;}
-.close{position:absolute;top:5px;right:10px;cursor:pointer;font-weight:bold;}
-@media(max-width:768px){.card-container{flex-direction:column;} table, thead, tbody, th, td, tr{display:block;} th{position:sticky; top:0;} td{position:relative;padding-left:50%;} td::before{position:absolute; left:0;width:50%; white-space:nowrap; font-weight:bold;}}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student OSIM</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f0f2f5; margin:0; padding:0; }
+    header { background:#004aad; color:white; padding:1rem; text-align:center; }
+    nav { display:flex; justify-content:center; margin:1rem 0; }
+    nav button { margin:0 0.5rem; padding:0.5rem 1rem; background:#004aad; color:white; border:none; border-radius:5px; cursor:pointer; }
+    nav button:hover { background:#003080; }
+    .container { max-width:1000px; margin:auto; padding:1rem; }
+    .card-container { display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-around; margin-bottom:1rem; }
+    .card { background:white; padding:1rem; border-radius:10px; flex:1; min-width:150px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    input, select, button { width:100%; padding:0.5rem; margin:0.3rem 0; border-radius:5px; border:1px solid #ccc; }
+    button { background:#004aad; color:white; border:none; cursor:pointer; }
+    button:hover { background:#003080; }
+    table { width:100%; border-collapse:collapse; margin-top:0.5rem; }
+    th, td { border:1px solid #ddd; padding:0.5rem; text-align:center; cursor:pointer; }
+    th { background:#004aad; color:white; }
+    .hidden { display:none; }
+    .search-box { margin-bottom:0.5rem; padding:0.5rem; border-radius:5px; border:1px solid #ccc; }
+    @media(max-width:768px) {
+      .card-container { flex-direction:column; }
+      table, thead, tbody, th, td, tr { display:block; }
+      th { position:sticky; top:0; }
+      td { position:relative; padding-left:50%; }
+      td::before { position:absolute; left:0; width:50%; white-space:nowrap; font-weight:bold; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
 <header><h1>Student OSIM</h1></header>
 <nav>
-<button onclick="showTab('studentRegister')">Student Register/Login</button>
-<button onclick="showTab('adminPanel')">Admin Panel</button>
+  <button onclick="showTab('studentRegister')">Student Register/Login</button>
+  <button onclick="showTab('adminPanel')">Admin Panel</button>
 </nav>
 
 <div class="container">
+  <div id="studentRegister">
+    <h2>Student Registration</h2>
+    <input placeholder="Name" id="regName">
+    <input placeholder="Student ID" id="regID">
+    <input placeholder="Class" id="regClass">
+    <input type="password" placeholder="Password" id="regPassword">
+    <button onclick="registerStudent()">Register</button>
 
-<!-- Student Registration/Login -->
-<div id="studentRegister">
-<h2>Student Registration</h2>
-<input placeholder="Name" id="regName">
-<input placeholder="Student ID" id="regID">
-<input placeholder="Class" id="regClass">
-<input type="password" placeholder="Password" id="regPassword">
-<button onclick="registerStudent()">Register</button>
+    <hr>
+    <h2>Student Login</h2>
+    <input type="text" id="loginID" placeholder="Enter Student ID">
+    <input type="password" id="loginPassword" placeholder="Enter Password">
+    <button onclick="studentLogin()">Login</button>
+    <button onclick="studentLogout()">Logout</button>
 
-<hr>
-<h2>Student Login</h2>
-<input type="text" id="loginID" placeholder="Enter Student ID">
-<input type="password" id="loginPassword" placeholder="Enter Password">
-<button onclick="studentLogin()">Login</button>
-<button onclick="studentLogout()">Logout</button>
+    <div id="studentResults" class="hidden">
+      <h3>Welcome, <span id="studentNameCard"></span></h3>
+      <p>ID: <span id="studentIDCard"></span></p>
+      <p>Class: <span id="studentClassCard"></span></p>
 
-<div id="studentResults" class="hidden">
-<h3>Welcome, <span id="studentNameCard"></span></h3>
-<p>ID: <span id="studentIDCard"></span></p>
-<p>Class: <span id="studentClassCard"></span></p>
+      <div class="card-container">
+        <div class="card">Total Grades: <span id="cardTotal"></span></div>
+        <div class="card">A Grades: <span id="cardA"></span></div>
+        <div class="card">B Grades: <span id="cardB"></span></div>
+        <div class="card">C Grades: <span id="cardC"></span></div>
+        <div class="card">D Grades: <span id="cardD"></span></div>
+        <div class="card">F Grades: <span id="cardF"></span></div>
+      </div>
 
-<div class="card-container">
-<div class="card">Total Grades: <span id="cardTotal"></span></div>
-<div class="card">A Grades: <span id="cardA"></span></div>
-<div class="card">B Grades: <span id="cardB"></span></div>
-<div class="card">C Grades: <span id="cardC"></span></div>
-<div class="card">D Grades: <span id="cardD"></span></div>
-<div class="card">F Grades: <span id="cardF"></span></div>
+      <canvas id="gradesChart" height="150"></canvas>
+      <h4>My Grades Table</h4>
+      <button onclick="exportMyGradesCSV()">Download My Grades CSV</button>
+      <table id="myGradesTable">
+        <thead><tr><th>Course</th><th>Grade</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="adminPanel" class="hidden">
+    <h2>Admin Dashboard</h2>
+    <div class="card-container">
+      <div class="card" id="totalStudents">Students: 0</div>
+      <div class="card" id="totalCourses">Courses: 0</div>
+      <div class="card" id="totalGrades">Grades: 0</div>
+    </div>
+
+    <h3>All Students</h3>
+    <input class="search-box" id="searchStudent" placeholder="Search students..." onkeyup="filterTable('studentsTable','searchStudent',1)">
+    <table id="studentsTable">
+      <thead><tr><th>Name</th><th>ID</th><th>Class</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>All Courses</h3>
+    <input class="search-box" id="searchCourse" placeholder="Search courses..." onkeyup="filterTable('coursesTable','searchCourse',0)">
+    <table id="coursesTable">
+      <thead><tr><th>Course</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>All Grades</h3>
+    <input class="search-box" id="searchGrade" placeholder="Search grades..." onkeyup="filterTable('gradesTable','searchGrade',0)">
+    <button onclick="exportGradesCSV()">Export Grades CSV</button>
+    <table id="gradesTable">
+      <thead><tr><th>Student</th><th>Course</th><th>Grade</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
-
-<canvas id="gradesChart" height="150"></canvas>
-<h4>My Grades Table</h4>
-<button onclick="exportMyGradesCSV()">Download My Grades CSV</button>
-<table id="myGradesTable">
-<thead><tr><th>Course</th><th>Grade</th></tr></thead>
-<tbody></tbody>
-</table>
-</div>
-</div>
-
-<!-- Admin Panel -->
-<div id="adminPanel" class="hidden">
-<h2>Admin Dashboard</h2>
-<div class="card-container">
-<div class="card" id="totalStudents">Students: 0</div>
-<div class="card" id="totalCourses">Courses: 0</div>
-<div class="card" id="totalGrades">Grades: 0</div>
-</div>
-
-<h3>All Students</h3>
-<input class="search-box" id="searchStudent" placeholder="Search students..." onkeyup="filterTable('studentsTable','searchStudent',1)">
-<table id="studentsTable">
-<thead><tr><th>Name</th><th>ID</th><th>Class</th><th>Actions</th></tr></thead>
-<tbody></tbody>
-</table>
-
-<h3>All Courses</h3>
-<input class="search-box" id="searchCourse" placeholder="Search courses..." onkeyup="filterTable('coursesTable','searchCourse',0)">
-<table id="coursesTable">
-<thead><tr><th>Course</th><th>Actions</th></tr></thead>
-<tbody></tbody>
-</table>
-
-<h3>All Grades</h3>
-<input class="search-box" id="searchGrade" placeholder="Search grades..." onkeyup="filterTable('gradesTable','searchGrade',0)">
-<button onclick="exportGradesCSV()">Export Grades CSV</button>
-<table id="gradesTable">
-<thead><tr><th>Student</th><th>Course</th><th>Grade</th><th>Actions</th></tr></thead>
-<tbody></tbody>
-</table>
-
-<button onclick="openModal('studentModal')">Add Student</button>
-<button onclick="openModal('courseModal')">Add Course</button>
-<button onclick="openModal('gradeModal')">Add Grade</button>
-</div>
-
-<!-- Modals can be added here as before -->
 
 <script>
-// --- Firebase Config ---
+// Firebase Config — replace with your actual values
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -139,95 +128,34 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// --- Data arrays ---
-let students=[], courses=[], grades=[], myChart=null;
+let students = [], courses = [], grades = [], myChart = null;
 
-// --- Load Data from Firebase ---
-async function loadData(){
-    const sSnap = await db.collection('students').get();
-    students = sSnap.docs.map(d=>d.data());
-    const cSnap = await db.collection('courses').get();
-    courses = cSnap.docs.map(d=>d.data());
-    const gSnap = await db.collection('grades').get();
-    grades = gSnap.docs.map(d=>d.data());
+function showTab(tab) {
+  if (tab === 'adminPanel') {
+    const pw = prompt("Enter Admin Password:");
+    if (pw !== "Masesahe5") { alert("Incorrect password!"); return; }
+  }
+  document.getElementById('studentRegister').classList.add('hidden');
+  document.getElementById('adminPanel').classList.add('hidden');
+  document.getElementById(tab).classList.remove('hidden');
+}
+
+async function registerStudent() {
+  const name = regName.value, id = regID.value, cls = regClass.value, pw = regPassword.value;
+  if (!name || !id || !cls || !pw) return alert('All fields required');
+  try {
+    const email = id + "@studentosim.com";
+    await auth.createUserWithEmailAndPassword(email, pw);
+    const student = { name, studentID: id, class: cls, email };
+    await db.collection('students').doc(id).set(student);
+    students.push(student);
+    alert("Registered successfully!");
+    regName.value = regID.value = regClass.value = regPassword.value = "";
     updateTables();
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
 }
 
-// --- Save to Firebase ---
-async function saveStudentToDB(student){ await db.collection('students').doc(student.studentID).set(student); }
-async function saveCourseToDB(course){ await db.collection('courses').doc(course.courseID).set(course); }
-async function saveGradeToDB(grade){ await db.collection('grades').doc(grade.gradeID).set(grade); }
-
-// --- Admin Password ---
-function showTab(tab){
-    if(tab==='adminPanel'){
-        const pw=prompt("Enter Admin Password:");
-        if(pw!=="Masesahe5"){alert("Incorrect password!"); return;}
-    }
-    document.getElementById('studentRegister').classList.add('hidden');
-    document.getElementById('adminPanel').classList.add('hidden');
-    document.getElementById(tab).classList.remove('hidden');
-}
-
-// --- Register Student with Firebase Auth ---
-async function registerStudent(){
-    const name=document.getElementById('regName').value;
-    const id=document.getElementById('regID').value;
-    const cls=document.getElementById('regClass').value;
-    const pw=document.getElementById('regPassword').value;
-    if(!name||!id||!cls||!pw){alert('All fields required'); return;}
-    try{
-        const email = id + "@studentosim.com"; // unique email for auth
-        await auth.createUserWithEmailAndPassword(email,pw);
-        const student={name,studentID:id,class:cls,email};
-        students.push(student);
-        await saveStudentToDB(student);
-        alert("Registered successfully! Use your Student ID to login.");
-        document.getElementById('regName').value='';
-        document.getElementById('regID').value='';
-        document.getElementById('regClass').value='';
-        document.getElementById('regPassword').value='';
-        updateTables();
-    } catch(error){ alert("Error: "+error.message); }
-}
-
-// --- Student Login ---
-async function studentLogin(){
-    const id=document.getElementById('loginID').value;
-    const pw=document.getElementById('loginPassword').value;
-    if(!id||!pw){alert("Enter ID and password."); return;}
-    try{
-        const email = id + "@studentosim.com";
-        await auth.signInWithEmailAndPassword(email,pw);
-        const student = students.find(s=>s.studentID===id);
-        if(student){ showStudentDashboard(student); }
-        else{ alert("Student data not found."); }
-    } catch(error){ alert("Login failed: "+error.message); }
-}
-
-// --- Logout ---
-function studentLogout(){
-    auth.signOut().then(()=>{
-        document.getElementById('studentResults').classList.add('hidden');
-        alert("Logged out successfully.");
-    });
-}
-
-// --- Show student dashboard ---
-function showStudentDashboard(student){
-    document.getElementById('studentResults').classList.remove('hidden');
-    document.getElementById('studentNameCard').textContent = student.name;
-    document.getElementById('studentIDCard').textContent = student.studentID;
-    document.getElementById('studentClassCard').textContent = student.class;
-    updateMyGradesDashboard(student.studentID);
-}
-
-// --- Placeholder for dashboard and table functions ---
-function updateTables(){ /* Implement table rendering for admin */ }
-function updateMyGradesDashboard(studentID){ /* Implement student grades dashboard */ }
-
-loadData();
-showTab('studentRegister');
-</script>
-</body>
-</html>
+async function studentLogin() {
+  const id[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/lzh-yi/Web-Fork-/tree/024b3e55587afdf9f05a677613a75f24e3d1803e/03-CSS%E8%BF%9B%E9%98%B6%2F04-%E5%A6%82%E4%BD%95%E8%AE%A9%E4%B8%80%E4%B8%AA%E5%85%83%E7%B4%A0%E6%B0%B4%E5%B9%B3%E5%9E%82%E7%9B%B4%E5%B1%85%E4%B8%AD%EF%BC%9F.md?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "1")
